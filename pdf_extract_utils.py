@@ -5,8 +5,14 @@ import yaml
 import camelot
 
 config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+config_template = os.path.join(os.path.dirname(__file__), 'config_template.yaml')
 
 def load_config():
+    if not os.path.exists(config_path):
+        shutil.copy(config_template, config_path)
+        print('Config file missing. A new one has been created. You must open the new config.yaml file and define the variables.')
+        exit()
+
     with open(config_path, 'r') as config_file:
         return yaml.safe_load(config_file)
     

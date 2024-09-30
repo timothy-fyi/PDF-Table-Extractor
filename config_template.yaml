@@ -1,0 +1,11 @@
+pdf_files: 'Drive:\\Location\\Of\\PDF\\Files\\*.pdf'
+unprocessed_folder: 'Drive:\\Location\\Of\\Files\\To\\Be\\Processed\\'
+processed_folder: 'Dive:\\Location\\Where\\Processed\\Files\\Should\\Be\\Moved\\To\\'
+export_folder: 'Drive:\\Base\\Location\\For\\Data\\Folders\\'
+folder_names:
+    - Folder
+    - Names
+    - Separated
+    - By
+    - Hyphens
+pdf_pages_to_extract: 'page,numbers,of,tables,to,be,extracted,separated,by,commas'
