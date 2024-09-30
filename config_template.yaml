@@ -1,11 +1,15 @@
-pdf_files: 'Drive:\\Location\\Of\\PDF\\Files\\*.pdf'
+# CONFIGURATION
+# Ensure to keep the "\\" within each location of the following paths
+# i.e. 'C:\\Users\\Name\\Documents\\PDF Files\\'
+
+pdf_files: 'Drive:\\Location\\Of\\PDF\\Files\\*.pdf' # Keep "*.pdf" after the path
 unprocessed_folder: 'Drive:\\Location\\Of\\Files\\To\\Be\\Processed\\'
 processed_folder: 'Dive:\\Location\\Where\\Processed\\Files\\Should\\Be\\Moved\\To\\'
 export_folder: 'Drive:\\Base\\Location\\For\\Data\\Folders\\'
-folder_names:
+folder_names: # Exact folder names only, not paths
     - Folder
     - Names
     - Separated
     - By
-    - Hyphens
+    - Hyphens 
 pdf_pages_to_extract: 'page,numbers,of,tables,to,be,extracted,separated,by,commas'
