@@ -1,15 +1,13 @@
 # CONFIGURATION
-# Ensure to keep the "\\" within each location of the following paths
-# i.e. 'C:\\Users\\Name\\Documents\\PDF Files\\'
 
-pdf_files: 'Drive:\\Location\\Of\\PDF\\Files\\*.pdf' # Keep "*.pdf" after the path
-unprocessed_folder: 'Drive:\\Location\\Of\\Files\\To\\Be\\Processed\\'
-processed_folder: 'Dive:\\Location\\Where\\Processed\\Files\\Should\\Be\\Moved\\To\\'
-export_folder: 'Drive:\\Base\\Location\\For\\Data\\Folders\\'
-folder_names: # Exact folder names only, not paths
+pdf_files: Drive:\Location\Of\PDF\Files\*.pdf # Location of PDF files. Keep "*.pdf" after adding the path
+unprocessed_folder: Drive:\Location\Of\Files\To\Be\Processed\ # Location where PDF files that need to be extracted go
+processed_folder: Dive:\Location\Where\Processed\Files\Should\Be\Moved\To\ # Location where extracted PDF files go
+export_folder: Drive:\Base\Location\For\Data\Folders\ # Base folder where the extracted tables get dropped
+folder_names: # Exact folder names only, not paths. These are folders within the \Data\ folder defined above
     - Folder
     - Names
     - Separated
     - By
     - Hyphens 
-pdf_pages_to_extract: 'page,numbers,of,tables,to,be,extracted,separated,by,commas'
+pdf_pages_to_extract: page,numbers,of,tables,to,be,extracted,separated,by,commas # Page numbers of the document itself, NOT page numbers of the pages (i.e. NOT the number at the bottom of the page)
