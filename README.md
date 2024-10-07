@@ -10,7 +10,7 @@ The main driver behind this project is [Camelot](https://pypi.org/project/camelo
 
 # Set Up
 1. Requires the PDF interpreter [Ghostscript](https://www.ghostscript.com/). Download and install.
-2. Run ```pip install -r /path/to/PDF-Table-Extractor/requirements.txt``` to install required packages. Ensure to change ```/path/to/``` to the path where PDF-Table-Extractor is located
+2. In a terminal/CMD window, navigate to the folder where the requirements.txt file is and run ```pip install -r requirements.txt``` to install required packages
 3. Run ```pdf_data_extract.py```
 4. The script will generate a ```config.yaml``` file and exit
 5. Edit the ```confg.yaml``` file, following the comments within it to ensure the correct values are being enetered
