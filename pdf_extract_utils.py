@@ -5,7 +5,7 @@ import yaml
 import camelot
 import pandas as pd
 
-config_path = os.path.join(os.path.dirname(__file__), 'config_testing.yaml')
+config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
 config_template = os.path.join(os.path.dirname(__file__), 'config_template.yaml')
 
 def load_config():
