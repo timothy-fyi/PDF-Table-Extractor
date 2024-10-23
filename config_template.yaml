@@ -11,3 +11,17 @@ folder_names: # Exact folder names only, not paths. These are folders within the
     - By
     - Hyphens 
 pdf_pages_to_extract: page,numbers,of,tables,to,be,extracted,separated,by,commas # Page numbers of the document itself, NOT page numbers of the pages (i.e. NOT the number at the bottom of the page)
+flavor: stream # The type of PDF data extraction to utilize. Default: stream. lattice: Used where the data tables are formatted in a grid. stream: used when data tables aren't formatted and need to be inferred
+
+# OPTIONAL CONFIGURATION
+optional_cleaning: 0 # 1 = on, 0 = off. Turn on optional cleaning. By default (without below options), removes columns where there are only 'NaN' values
+clean_start: 0 # 1 = on, 0 = off. If extracted PDF has space or additional unneeded text before data starts, use this option to remove it
+start_row_column_name: Column Name # Column name to start headers on
+clean_end: 0 # 1 = on, 0 = off. Useful if there is summary columns or unneeded text after data that gets brought in with extraction
+end_row_column_name: Column Name # Column name that contains the ending_row_value you need to filter out
+ending_row_value: Value # Value to end data before
+filter: 0 # 1 = on, 0 = off. If you need to filter a column, turn this on
+filter_column: Column Name # Column that needs filtering
+filter_values: # Values to filter out of data. Ex) Filter 'Column A' where value equals 'Value Below'
+    - Filter Value 1
+    - Filter Value 2

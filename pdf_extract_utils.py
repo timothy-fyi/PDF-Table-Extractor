@@ -3,8 +3,9 @@ import os
 import shutil
 import yaml
 import camelot
+import pandas as pd
 
-config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+config_path = os.path.join(os.path.dirname(__file__), 'config_testing.yaml')
 config_template = os.path.join(os.path.dirname(__file__), 'config_template.yaml')
 
 def load_config():
@@ -16,8 +17,8 @@ def load_config():
     with open(config_path, 'r') as config_file:
         return yaml.safe_load(config_file)
     
-def get_mmr_files(config):
-    print('Getting MMR file(s)...')
+def get_pdf_files(config):
+    print('Getting PDF file(s)...')
     return glob.glob(config['pdf_files'])
 
 def extract_and_export_tables(file, config, pages):
@@ -26,7 +27,7 @@ def extract_and_export_tables(file, config, pages):
     date_extract = file[-8:-4]
 
     try:
-        tables = camelot.read_pdf(file, flavor='stream', pages=pages, suppress_stdout=True)
+        tables = camelot.read_pdf(file, flavor=config['flavor'], pages=pages, suppress_stdout=True)
     except IndexError:
         print('Pages not found. Did you input the correct page numbers?')
         exit()
@@ -48,5 +49,56 @@ def extract_and_export_tables(file, config, pages):
             )
             exit()
 
+def clean_csv(file, config, clean_start=0, clean_end=0, filter=0):
+    file_name = os.path.basename(file)
+    date_extract = file[-8:-4]
+    base_export_path = config['export_folder']
+    folders = config['folder_names']
+    cleaning_failure_message = (
+        'column name in configuration not found. Did you set a name and did you spell it right? Did you mean to run the cleaning function?'
+        'Note that while the CSVs exported, due to this failure they were NOT cleaned.'
+        'Please check the configuration file and run the script again to clean CSVs.'
+    )
+
+    for folder in folders:
+        file_path = os.path.join(base_export_path, folder, f'{folder.lower().replace(" ", "_")}{date_extract}.csv')
+
+        print(f'Cleaning {os.path.basename(file_path)}')
+
+        df = pd.read_csv(file_path, skip_blank_lines=False, header=None)
+
+        if clean_start == 1:
+            start_row = config['start_row_column_name']
+            try:
+                start = df.loc[df[0] == start_row].index[0]
+                df = pd.read_csv(file_path, skiprows=start)
+            except (IndexError, KeyError):
+                print(f'Start {cleaning_failure_message}')
+                exit()
+
+        if clean_end == 1:
+            end_row = config['end_row_column_name']
+            ending_row_value = config['ending_row_value']
+            try:
+                df = df.loc[:df[df[end_row] == ending_row_value].index[0] - 1]
+            except (IndexError, KeyError):
+                print(f'End {cleaning_failure_message}')
+                exit()
+
+        if filter == 1:
+            filter_column = config['filter_column']
+            filter_values = config['filter_values']
+            try:
+                for value in filter_values:
+                    df = df[~df[filter_column].str.contains(value)]
+            except (IndexError, KeyError):
+                print(f'Filter {cleaning_failure_message}')
+                exit()
+
+        df = df.dropna(axis=1, how='all')
+        df.to_csv(file_path, index=False)
+
+def move_pdf_files(file, config):
+    file_name = os.path.basename(file)
     print(f'Moving {file_name} to processed folder...')
     shutil.move(os.path.join(config['unprocessed_folder'], file_name), os.path.join(config['processed_folder'], file_name))
