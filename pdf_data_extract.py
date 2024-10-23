@@ -1,4 +1,4 @@
-from testing_utils import load_config, get_pdf_files, extract_and_export_tables, clean_csv, move_pdf_files
+from pdf_extract_utils import load_config, get_pdf_files, extract_and_export_tables, clean_csv, move_pdf_files
 
 def main():
     config = load_config()
