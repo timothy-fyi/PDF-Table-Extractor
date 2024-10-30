@@ -5,89 +5,132 @@ import yaml
 import camelot
 import pandas as pd
 
-config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
-config_template = os.path.join(os.path.dirname(__file__), 'config_template.yaml')
+def load_yaml(file, template=None):
+    """
+    Loads a YAML file with error handling and template control.
 
-def load_config():
-    if not os.path.exists(config_path):
-        shutil.copy(config_template, config_path)
-        print('Config file missing. A new one has been created. You must open the new config.yaml file and define the variables.')
+    Parameters:
+        file (str): File path of file to load
+        template (str): Optional. File path of template file if original file doesn't exist.
+
+    """
+    if template:
+        if not os.path.exists(file):
+            try:
+                shutil.copy(template, file)
+                print('File missing. A new one has been created. You must open the new file and define the variables.')
+            except FileNotFoundError:
+                print('Specified template file does not exist.')
+            exit()
+    try:
+        with open(file, 'r') as config_file:
+            return yaml.safe_load(config_file)
+    except FileNotFoundError:
+        print('File not found. Please check path.')
         exit()
 
-    with open(config_path, 'r') as config_file:
-        return yaml.safe_load(config_file)
-    
-def get_pdf_files(config):
-    print('Getting PDF file(s)...')
-    return glob.glob(config['pdf_files'])
+def get_files(file_location):
+    """
+    Returns a list of files from a folder.
 
-def extract_and_export_tables(file, config, pages):
+    Parameters:
+        file_location (str): Folder location of files.
+    """
+    print('Getting file(s)...')
+    return glob.glob(file_location)
+
+def extract_and_export_tables(file, pages, export_folders, extract_date=False, flavor='stream'):
+    """
+    Extracts tables from a PDF file and exports them to CSV. Also returns a list of the locations of resulting CSVs.
+
+    Parameters:
+        file (str): PDF file to be used. Include full path.
+        pages (str): Pages where tables are to be extracted. As string, separated by comma.
+        export_folders (str or list): Export location for tables. Input as list.
+        extract_date (bool): Extract dates that are at the end of a file. Only works if string is in YYMM format.
+        flavor (str): From camelot. 'stream': infers tables. 'lattice': work when tables are clearly defined in PDF.
+    """
+    csv_paths = []
+
+    if isinstance(export_folders, str):
+        export_folders = [export_folders]
+
     file_name = os.path.basename(file)
     print(f'Extracting and exporting tables from {file_name} to csv...')
-    date_extract = file[-8:-4]
 
     try:
-        tables = camelot.read_pdf(file, flavor=config['flavor'], pages=pages, suppress_stdout=True)
+        tables = camelot.read_pdf(file, flavor=flavor, pages=pages, suppress_stdout=True)
     except IndexError:
         print('Pages not found. Did you input the correct page numbers?')
         exit()
 
-    base_export_path = config['export_folder']
-    folders = config['folder_names']
+    if len(export_folders) > 1 and len(tables) != len(export_folders):
+        raise ValueError("The number of export folders must match the number of tables extracted when more than one folder is provided.")
 
-    for i, folder in enumerate(folders):
-        file_path = os.path.join(base_export_path, folder, f'{folder.lower().replace(" ", "_")}{date_extract}.csv')
+    for i, table in enumerate(tables):
+        if len(export_folders) == 1:
+            folder = export_folders[0]
+        else:
+            folder = export_folders[i]
 
-        try:
-            tables[i].to_csv(file_path)
-        except IndexError:
-            print(
-                f'ERROR: EXTRACT NOT SUCCESSFUL!\n'
-                f'REASON: Pages in {file_name} seem to be image based.\n' 
-                f'SOLUTION: Please check {file_name} and any other PDFs in the "Unprocessed" folder '
-                f'and ensure that they are in the correct format, i.e. text based and NOT screenshot/image based.'
-            )
-            exit()
+        folder_name = os.path.basename(os.path.normpath(folder)).lower().replace(' ', '_')
+        if extract_date:
+            date_extract = file[-8:-4]
+            file_path = os.path.join(folder, f'{folder_name}{date_extract}.csv')
+        else:
+            file_path = os.path.join(folder, f'{folder_name}.csv')
 
-def clean_csv(file, config, clean_start=0, clean_end=0, filter=0):
-    file_name = os.path.basename(file)
-    date_extract = file[-8:-4]
-    base_export_path = config['export_folder']
-    folders = config['folder_names']
+        table.to_csv(file_path)
+
+        csv_paths.append(file_path)
+    
+    return csv_paths
+
+def clean_csv(file, clean_start=None, clean_end=None, clean_end_value=None, filter_column=None, filter_values=[]):
+    """
+    Performs basic 'cleaning' on a CSV file.
+
+    Parameters:
+        file (str or list): CSV(s) to be cleaned. Include full path.
+        clean_start (str): Text where you would want column headers to start. If extracted PDF has space or additional unneeded text before data starts, use this option to remove it.
+        clean_end (str): Column where clean_end_value is located.
+        clean_end_value (str): Text where you would want data to end. Useful if there is summary columns or unneeded text after data that gets brought in with extraction.
+        filter_column (str): Column where you want the filtering to take place.
+        filter_values (list): Values to filter out of data. Ex) Filter filter_column where value is in filter_values.
+    """
     cleaning_failure_message = (
         'column name in configuration not found. Did you set a name and did you spell it right? Did you mean to run the cleaning function?'
         'Note that while the CSVs exported, due to this failure they were NOT cleaned.'
         'Please check the configuration file and run the script again to clean CSVs.'
     )
 
-    for folder in folders:
-        file_path = os.path.join(base_export_path, folder, f'{folder.lower().replace(" ", "_")}{date_extract}.csv')
+    if isinstance(file, str):
+        file = [file]
 
-        print(f'Cleaning {os.path.basename(file_path)}')
+    for csv in file:
+        print(f'Cleaning {os.path.basename(csv)}')
 
-        df = pd.read_csv(file_path, skip_blank_lines=False, header=None)
+        df = pd.read_csv(csv, skip_blank_lines=False, header=None)
 
-        if clean_start == 1:
-            start_row = config['start_row_column_name']
+        if clean_start:
+            start_column = clean_start
             try:
-                start = df.loc[df[0] == start_row].index[0]
-                df = pd.read_csv(file_path, skiprows=start)
+                start = df.loc[df[0] == start_column].index[0]
+                df = pd.read_csv(csv, skiprows=start)
             except (IndexError, KeyError):
                 print(f'Start {cleaning_failure_message}')
                 exit()
 
-        if clean_end == 1:
-            end_row = config['end_row_column_name']
-            ending_row_value = config['ending_row_value']
+        if clean_end:
+            end_row = clean_end
+            ending_row_value = clean_end_value
             try:
                 df = df.loc[:df[df[end_row] == ending_row_value].index[0] - 1]
             except (IndexError, KeyError):
                 print(f'End {cleaning_failure_message}')
                 exit()
 
-        if filter == 1:
-            filter_column = config['filter_column']
-            filter_values = config['filter_values']
+        if filter_column:
             try:
                 for value in filter_values:
                     df = df[~df[filter_column].str.contains(value)]
@@ -96,9 +139,17 @@ def clean_csv(file, config, clean_start=0, clean_end=0, filter=0):
                 exit()
 
         df = df.dropna(axis=1, how='all')
-        df.to_csv(file_path, index=False)
+        df.to_csv(csv, index=False)
 
-def move_pdf_files(file, config):
+def move_files(file, grab_from_folder, move_to_folder):
+    """
+    Moves file(s) to a new location.
+
+    Parameters:
+        file (str): File to be moved. Include full path.
+        grab_from_folder (str): Folder path where file to be moved is located.
+        move_to_folder (str): Folder path to move file to.
+    """
     file_name = os.path.basename(file)
     print(f'Moving {file_name} to processed folder...')
-    shutil.move(os.path.join(config['unprocessed_folder'], file_name), os.path.join(config['processed_folder'], file_name))
+    shutil.move(os.path.join(grab_from_folder, file_name), os.path.join(move_to_folder, file_name))

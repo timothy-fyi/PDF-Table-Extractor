@@ -1,27 +1,21 @@
 # CONFIGURATION
-
 pdf_files: Drive:\Location\Of\PDF\Files\*.pdf # Location of PDF files. Keep "*.pdf" after adding the path
 unprocessed_folder: Drive:\Location\Of\Files\To\Be\Processed\ # Location where PDF files that need to be extracted go
 processed_folder: Dive:\Location\Where\Processed\Files\Should\Be\Moved\To\ # Location where extracted PDF files go
 export_folder: Drive:\Base\Location\For\Data\Folders\ # Base folder where the extracted tables get dropped
-folder_names: # Exact folder names only, not paths. These are folders within the \Data\ folder defined above
-    - Folder
-    - Names
-    - Separated
-    - By
-    - Hyphens 
+folder_names: # Exact folder names only, not paths. These are folders within the \Data\ folder defined above. Ensure they are in the same order as they appear in the page numbers
+    - Drive:\Path\To\Folder\One
+    - Drive:\Path\To\Folder\Two
+    - Drive:\Path\To\Folder\Three
 pdf_pages_to_extract: page,numbers,of,tables,to,be,extracted,separated,by,commas # Page numbers of the document itself, NOT page numbers of the pages (i.e. NOT the number at the bottom of the page)
 flavor: stream # The type of PDF data extraction to utilize. Default: stream. lattice: Used where the data tables are formatted in a grid. stream: used when data tables aren't formatted and need to be inferred
 
 # OPTIONAL CONFIGURATION
 optional_cleaning: 0 # 1 = on, 0 = off. Turn on optional cleaning. By default (without below options), removes columns where there are only 'NaN' values
-clean_start: 0 # 1 = on, 0 = off. If extracted PDF has space or additional unneeded text before data starts, use this option to remove it
-start_row_column_name: Column Name # Column name to start headers on
-clean_end: 0 # 1 = on, 0 = off. Useful if there is summary columns or unneeded text after data that gets brought in with extraction
-end_row_column_name: Column Name # Column name that contains the ending_row_value you need to filter out
-ending_row_value: Value # Value to end data before
-filter: 0 # 1 = on, 0 = off. If you need to filter a column, turn this on
+clean_start: Column Name # Text where you would want column headers to start. If extracted PDF has space or additional unneeded text before data starts, use this option to remove it
+end_column_name: Column Name # Column name where the value you want to define the data end is. Useful if there is summary columns or unneeded text after data that gets brought in with extraction
+end_column_value: Value # Value to end the data on.
 filter_column: Column Name # Column that needs filtering
-filter_values: # Values to filter out of data. Ex) Filter 'Column A' where value equals 'Value Below'
-    - Filter Value 1
-    - Filter Value 2
+filter_values: # Values to filter out of data. Ex) Filter 'Column A' where value equals 'Value(s) Below'. Add more by more adding '-'s. 
+    - Filter Value One
+    - Filter Value Two
