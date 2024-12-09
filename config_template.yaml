@@ -2,8 +2,7 @@
 pdf_files: Drive:\Location\Of\PDF\Files\*.pdf # Location of PDF files. Keep "*.pdf" after adding the path
 unprocessed_folder: Drive:\Location\Of\Files\To\Be\Processed\ # Location where PDF files that need to be extracted go
 processed_folder: Dive:\Location\Where\Processed\Files\Should\Be\Moved\To\ # Location where extracted PDF files go
-export_folder: Drive:\Base\Location\For\Data\Folders\ # Base folder where the extracted tables get dropped
-folder_names: # Exact folder names only, not paths. These are folders within the \Data\ folder defined above. Ensure they are in the same order as they appear in the page numbers
+folder_names: # Path to folders where exported data goes. Ensure they are in the same order as they appear in the page numbers
     - Drive:\Path\To\Folder\One
     - Drive:\Path\To\Folder\Two
     - Drive:\Path\To\Folder\Three
@@ -13,8 +12,7 @@ flavor: stream # The type of PDF data extraction to utilize. Default: stream. la
 # OPTIONAL CONFIGURATION
 optional_cleaning: 0 # 1 = on, 0 = off. Turn on optional cleaning. By default (without below options), removes columns where there are only 'NaN' values
 clean_start: Column Name # Text where you would want column headers to start. If extracted PDF has space or additional unneeded text before data starts, use this option to remove it
-end_column_name: Column Name # Column name where the value you want to define the data end is. Useful if there is summary columns or unneeded text after data that gets brought in with extraction
-end_column_value: Value # Value to end the data on.
+clean_end: Value # Value to end the data on.
 filter_column: Column Name # Column that needs filtering
 filter_values: # Values to filter out of data. Ex) Filter 'Column A' where value equals 'Value(s) Below'. Add more by more adding '-'s. 
     - Filter Value One

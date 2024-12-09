@@ -9,12 +9,13 @@ While this was built for a specific type of PDF and for a specific use case, it 
 The main driver behind this project is [Camelot](https://pypi.org/project/camelot-py/). It is a Python library that allows for extracting tables from PDFs. If you need to modify this code to suit your needs, reading through Camelot's documentation will be extremely helpful.
 
 # Set Up
-1. Requires the PDF interpreter [Ghostscript](https://www.ghostscript.com/). Download and install.
-2. In a terminal/CMD window, navigate to the folder where the requirements.txt file is and run ```pip install -r requirements.txt``` to install required packages
-3. Run ```pdf_data_extract.py```
-4. The script will generate a ```config.yaml``` file and exit
-5. Edit the ```confg.yaml``` file, following the comments within it to ensure the correct values are being enetered
-6. Re-run ```pdf_data_extract.py``` when ready to extract
+1. Requires Python 3.7 and up
+2. Requires the PDF interpreter [Ghostscript](https://www.ghostscript.com/). Download and install.
+3. In a terminal/CMD window, navigate to the folder where the requirements.txt file is (ex. cd Drive:\Path\To\PDF Extractor Folder\) and run ```pip install -r requirements.txt``` to install required packages
+4. Run ```pdf_data_extract.py```
+5. The script will generate a ```config.yaml``` file and exit
+6. Edit the ```confg.yaml``` file, following the comments within it to ensure the correct values are being enetered
+7. Re-run ```pdf_data_extract.py``` when ready to extract
 
 # Additional Info
 - The pages being extracted from the PDF are declared in the configuration file, but there may be times when the pages need to be temporarily changed. One possibility is the PDF may be missing a page it normally contains, thowing off the page numbers where the tables usually are. If this happens, it is easy to adjust without updating the config file by using the ```pdf_extract_fix.py``` script. When running this script, instead of using the value from the configuration, it will ask you to input the page numbers instead. Ensure you are entering the page numbers on a single line, separated with commas like so: ```5,7,9,15```

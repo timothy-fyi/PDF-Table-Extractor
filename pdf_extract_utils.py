@@ -4,6 +4,7 @@ import shutil
 import yaml
 import camelot
 import pandas as pd
+import numpy as np
 
 def load_yaml(file, template=None):
     """
@@ -34,7 +35,7 @@ def get_files(file_location):
     Returns a list of files from a folder.
 
     Parameters:
-        file_location (str): Folder location of files.
+        file_location (str): Folder location of files. Asterisk(*) must be included after folder path to return file paths. 
     """
     print('Getting file(s)...')
     return glob.glob(file_location)
@@ -55,6 +56,9 @@ def extract_and_export_tables(file, pages, export_folders, extract_date=False, f
     if isinstance(export_folders, str):
         export_folders = [export_folders]
 
+    if isinstance(pages, int):
+        pages = str(pages)
+
     file_name = os.path.basename(file)
     print(f'Extracting and exporting tables from {file_name} to csv...')
 
@@ -65,7 +69,7 @@ def extract_and_export_tables(file, pages, export_folders, extract_date=False, f
         exit()
 
     if len(export_folders) > 1 and len(tables) != len(export_folders):
-        raise ValueError("The number of export folders must match the number of tables extracted when more than one folder is provided.")
+        raise ValueError('The number of export folders must match the number of tables extracted when more than one folder is provided.')
 
     for i, table in enumerate(tables):
         if len(export_folders) == 1:
@@ -86,15 +90,20 @@ def extract_and_export_tables(file, pages, export_folders, extract_date=False, f
     
     return csv_paths
 
-def clean_csv(file, clean_start=None, clean_end=None, clean_end_value=None, filter_column=None, filter_values=[]):
+# to find location of specific text in dataframe
+def find_loc(df, search_value):
+    result = np.where(df.apply(lambda row: row.astype(str) == search_value).values)
+    locations = list(zip(result[0], result[1]))
+    return locations[0][0]
+
+def clean_csv(file, clean_start=None, clean_end=None, filter_column=None, filter_values=[]):
     """
     Performs basic 'cleaning' on a CSV file.
 
     Parameters:
         file (str or list): CSV(s) to be cleaned. Include full path.
         clean_start (str): Text where you would want column headers to start. If extracted PDF has space or additional unneeded text before data starts, use this option to remove it.
-        clean_end (str): Column where clean_end_value is located.
-        clean_end_value (str): Text where you would want data to end. Useful if there is summary columns or unneeded text after data that gets brought in with extraction.
+        clean_end (str): Text where you would want data to end. Useful if there is summary columns or unneeded text after data that gets brought in with extraction.
         filter_column (str): Column where you want the filtering to take place.
         filter_values (list): Values to filter out of data. Ex) Filter filter_column where value is in filter_values.
     """
@@ -113,19 +122,17 @@ def clean_csv(file, clean_start=None, clean_end=None, clean_end_value=None, filt
         df = pd.read_csv(csv, skip_blank_lines=False, header=None)
 
         if clean_start:
-            start_column = clean_start
             try:
-                start = df.loc[df[0] == start_column].index[0]
+                start = find_loc(df, clean_start)
                 df = pd.read_csv(csv, skiprows=start)
             except (IndexError, KeyError):
                 print(f'Start {cleaning_failure_message}')
                 exit()
 
         if clean_end:
-            end_row = clean_end
-            ending_row_value = clean_end_value
             try:
-                df = df.loc[:df[df[end_row] == ending_row_value].index[0] - 1]
+                end = find_loc(df, clean_end)
+                df = df.loc[:end - 1]
             except (IndexError, KeyError):
                 print(f'End {cleaning_failure_message}')
                 exit()
@@ -151,5 +158,5 @@ def move_files(file, grab_from_folder, move_to_folder):
         move_to_folder (str): Folder path to move file to.
     """
     file_name = os.path.basename(file)
-    print(f'Moving {file_name} to processed folder...')
+    print(f'Moving {file_name} to specified folder...')
     shutil.move(os.path.join(grab_from_folder, file_name), os.path.join(move_to_folder, file_name))
