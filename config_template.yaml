@@ -10,10 +10,13 @@ pdf_pages_to_extract: page,numbers,of,tables,to,be,extracted,separated,by,commas
 flavor: stream # The type of PDF data extraction to utilize. Default: stream. lattice: Used where the data tables are formatted in a grid. stream: used when data tables aren't formatted and need to be inferred
 
 # OPTIONAL CONFIGURATION
+extract_string: # two numbers separated only, separated by a comma. Places to extract text from (ex. filename: ABC 2410.pdf -> -8,-4 would extract 2410)
+    - Num1
+    - Num2 
 optional_cleaning: 0 # 1 = on, 0 = off. Turn on optional cleaning. By default (without below options), removes columns where there are only 'NaN' values
 clean_start: Column Name # Text where you would want column headers to start. If extracted PDF has space or additional unneeded text before data starts, use this option to remove it
 clean_end: Value # Value to end the data on.
 filter_column: Column Name # Column that needs filtering
-filter_values: # Values to filter out of data. Ex) Filter 'Column A' where value equals 'Value(s) Below'. Add more by more adding '-'s. 
+filter_values: # Values to filter out of data. Ex) Filter 'filter_column' where value equals 'Value(s) Below'. Add more by more adding a new line with a '-' for each. 
     - Filter Value One
     - Filter Value Two

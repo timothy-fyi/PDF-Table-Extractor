@@ -1,5 +1,6 @@
 import glob
 import os
+import time
 import shutil
 import yaml
 import camelot
@@ -40,15 +41,15 @@ def get_files(file_location):
     print('Getting file(s)...')
     return glob.glob(file_location)
 
-def extract_and_export_tables(file, pages, export_folders, extract_date=False, flavor='stream'):
+def extract_and_export_tables(file, pages, export_folders, extract_string=False, flavor='stream'):
     """
     Extracts tables from a PDF file and exports them to CSV. Also returns a list of the locations of resulting CSVs.
 
     Parameters:
         file (str): PDF file to be used. Include full path.
         pages (str): Pages where tables are to be extracted. As string, separated by comma.
-        export_folders (str or list): Export location for tables. Input as list.
-        extract_date (bool): Extract dates that are at the end of a file. Only works if string is in YYMM format.
+        export_folders (str or list): Export location for tables. Input multiple as list.
+        extract_string (list): Extracts text from file name. Two numbers only, inputted as list. Example: [-8,-4]
         flavor (str): From camelot. 'stream': infers tables. 'lattice': work when tables are clearly defined in PDF.
     """
     csv_paths = []
@@ -58,6 +59,10 @@ def extract_and_export_tables(file, pages, export_folders, extract_date=False, f
 
     if isinstance(pages, int):
         pages = str(pages)
+
+    if len(extract_string) > 2:
+        print('Argument extract_string contains more numbers than expected. Please input again with two numbers only.')
+        exit()
 
     file_name = os.path.basename(file)
     print(f'Extracting and exporting tables from {file_name} to csv...')
@@ -74,24 +79,32 @@ def extract_and_export_tables(file, pages, export_folders, extract_date=False, f
     for i, table in enumerate(tables):
         if len(export_folders) == 1:
             folder = export_folders[0]
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            new_file_name = f'export_{timestamp}'
         else:
             folder = export_folders[i]
+            new_file_name = os.path.basename(os.path.normpath(folder)).lower().replace(' ', '_')
 
-        folder_name = os.path.basename(os.path.normpath(folder)).lower().replace(' ', '_')
-        if extract_date:
-            date_extract = file[-8:-4]
-            file_path = os.path.join(folder, f'{folder_name}{date_extract}.csv')
+        if extract_string:
+            string_extract = file[extract_string[0]:extract_string[1]]
+            file_path = os.path.join(folder, f'{new_file_name}{string_extract}.csv')
         else:
-            file_path = os.path.join(folder, f'{folder_name}.csv')
+            file_path = os.path.join(folder, f'{new_file_name}.csv')
 
         table.to_csv(file_path)
-
         csv_paths.append(file_path)
-    
+
     return csv_paths
 
 # to find location of specific text in dataframe
 def find_loc(df, search_value):
+    """
+    Extracts tables from a PDF file and exports them to CSV. Also returns a list of the locations of resulting CSVs.
+
+    Parameters:
+        df (pandas dataframe): Dataframe to find text.
+        search_value (any): Value to get location for in df.
+    """
     result = np.where(df.apply(lambda row: row.astype(str) == search_value).values)
     locations = list(zip(result[0], result[1]))
     return locations[0][0]
@@ -120,11 +133,24 @@ def clean_csv(file, clean_start=None, clean_end=None, filter_column=None, filter
         print(f'Cleaning {os.path.basename(csv)}')
 
         df = pd.read_csv(csv, skip_blank_lines=False, header=None)
-
+ 
         if clean_start:
             try:
-                start = find_loc(df, clean_start)
-                df = pd.read_csv(csv, skiprows=start)
+                # Old way
+                # start = find_loc(df, clean_start)
+                # df = pd.read_csv(csv, skiprows=start)
+
+                # New way, hoping to ensure the correct header row is where it needs to be, even if format of csv changes
+                row_index = df[df.isin([clean_start]).any(axis=1)].index[0]
+                desired_row = df.loc[[row_index]]
+
+                df = df.dropna().reset_index(drop=True)
+
+                if not df.isin([clean_start]).any().any():
+                    df = pd.concat([desired_row, df]).reset_index(drop=True)
+
+                df.columns = df.iloc[0]
+                df = df[1:].reset_index(drop=True)
             except (IndexError, KeyError):
                 print(f'Start {cleaning_failure_message}')
                 exit()
