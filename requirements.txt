@@ -2,3 +2,4 @@ camelot-py~=0.11.0
 pandas~=2.2.3
 PyYAML~=6.0.1
 ghostscript~=0.7
+opencv-python~=4.10

@@ -1,5 +1,5 @@
-import glob
 import os
+import glob
 import time
 import shutil
 import yaml
@@ -121,9 +121,10 @@ def clean_csv(file, clean_start=None, clean_end=None, filter_column=None, filter
         filter_values (list): Values to filter out of data. Ex) Filter filter_column where value is in filter_values.
     """
     cleaning_failure_message = (
-        'column name in configuration not found. Did you set a name and did you spell it right? Did you mean to run the cleaning function?'
-        'Note that while the CSVs exported, due to this failure they were NOT cleaned.'
-        'Please check the configuration file and run the script again to clean CSVs.'
+        f'column name in configuration not found. Did you set a name and did you spell it right? Did you mean to run the cleaning function? \n'
+        f'Note that while the above CSV exported, due to this failure they were NOT cleaned.\n '
+        f'Please check the configuration file and run the script again to clean CSVs.\n'
+        f'Looking for: {clean_start}'
     )
 
     if isinstance(file, str):
@@ -136,21 +137,39 @@ def clean_csv(file, clean_start=None, clean_end=None, filter_column=None, filter
  
         if clean_start:
             try:
-                # Old way
-                # start = find_loc(df, clean_start)
-                # df = pd.read_csv(csv, skiprows=start)
+                # Shows originial DataFrame
+                df = pd.read_csv(csv, skip_blank_lines=False, header=None)
+                print("Original DataFrame:")
+                print(df)
 
-                # New way, hoping to ensure the correct header row is where it needs to be, even if format of csv changes
+                # Finds where clean_start is
                 row_index = df[df.isin([clean_start]).any(axis=1)].index[0]
-                desired_row = df.loc[[row_index]]
+                print(f"Row index of clean_start ({clean_start}): {row_index}")
 
-                df = df.dropna().reset_index(drop=True)
+                # Slice and transform DataFrame to clean up rows before the data
+                df = df.iloc[row_index:].reset_index(drop=True)
+                df = df.dropna(axis=1, how='all')
 
-                if not df.isin([clean_start]).any().any():
-                    df = pd.concat([desired_row, df]).reset_index(drop=True)
+                while len(df) > 1 and df.iloc[1].isna().all():
+                    df = df.drop(1).reset_index(drop=True)
+
+                print("Modified DataFrame:")
+                print(df)
+
+                # Clean up any potential fully NaN rows below headers, final slices and transformations
+                while df.iloc[1].isna().any():
+                    df = df.drop(1).reset_index(drop=True)
 
                 df.columns = df.iloc[0]
                 df = df[1:].reset_index(drop=True)
+
+                # # Rename columns in code if desired
+                # new_column_names = [f"Header_{i}" for i in range(len(df.columns))]
+                # df.columns = new_column_names
+
+                print("Final DataFrame:")
+                print(df)
+
             except (IndexError, KeyError):
                 print(f'Start {cleaning_failure_message}')
                 exit()
